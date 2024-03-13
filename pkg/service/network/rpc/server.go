@@ -148,7 +148,14 @@ func (s *Server) Shutdown() {
 	s.listener.Close()
 }
 
+func (s *Server) ListenOn() string {
+	return s.config.Addr
+}
+
 func New(c Config) *Server {
+	if c.Addr == "" {
+		c.Addr = "0.0.0.0:8081"
+	}
 	srv := &Server{config: c}
 	return srv
 }

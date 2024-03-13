@@ -24,6 +24,9 @@ type Server struct {
 }
 
 func New(c Config) *Server {
+	if c.Addr == "" {
+		c.Addr = "0.0.0.0:8080"
+	}
 	return &Server{
 		config: c,
 		srv:    &http.Server{Addr: c.Addr},
@@ -56,6 +59,10 @@ func (s *Server) GINRouter(router func(router gin.IRouter)) {
 	e.GET(handler.HealthPath, func(c *gin.Context) { handler.Health(c.Writer, c.Request) })
 	router(e)
 	s.handler = e
+}
+
+func (s *Server) ListenOn() string {
+	return s.srv.Addr
 }
 
 func (s *Server) check() {
