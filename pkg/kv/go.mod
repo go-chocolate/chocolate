@@ -1,4 +1,4 @@
-module github.com/go-chocolate/chocolate/pkg/chocolate
+module github.com/go-chocolate/chocolate/pkg/kv
 
 go 1.20
 
