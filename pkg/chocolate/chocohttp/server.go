@@ -6,11 +6,8 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/gin-gonic/gin"
-	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-chocolate/chocolate/pkg/chocolate/chocohttp/internal/handler"
 	"github.com/go-chocolate/chocolate/pkg/chocolate/chocohttp/internal/middleware"
 )
 
@@ -47,28 +44,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
 }
 
-func (s *Server) Router(router func(mux *http.ServeMux)) {
+func (s *Server) SetRouter(h http.Handler) {
 	s.check()
-	mux := http.NewServeMux()
-	mux.HandleFunc(handler.HealthPath, handler.Health)
-	router(mux)
-	s.handler = mux
-}
-
-func (s *Server) Httprouter(router func(router *httprouter.Router)) {
-	s.check()
-	e := httprouter.New()
-	e.HandlerFunc(http.MethodGet, handler.HealthPath, handler.Health)
-	router(e)
-	s.handler = e
-}
-
-func (s *Server) GINRouter(router func(router gin.IRouter)) {
-	s.check()
-	e := gin.New()
-	e.GET(handler.HealthPath, func(c *gin.Context) { handler.Health(c.Writer, c.Request) })
-	router(e)
-	s.handler = e
+	s.handler = h
 }
 
 func (s *Server) ListenOn() string {
