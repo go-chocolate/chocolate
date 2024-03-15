@@ -91,10 +91,11 @@ func (c CORSConfig) build() cors.Config {
 }
 
 type LoggerConfig struct {
-	Enable             bool
-	RecordHeader       []string
-	RecordRequestBody  bool
-	RecordResponseBody bool
+	Enable bool
+	//TODO
+	//RecordHeader       []string
+	//RecordRequestBody  bool
+	//RecordResponseBody bool
 }
 
 type RateLimitConfig struct {

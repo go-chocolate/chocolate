@@ -5,6 +5,8 @@ import (
 	"github.com/go-chocolate/chocolate/pkg/kv"
 	"github.com/go-chocolate/chocolate/pkg/telemetry"
 	"gorm.io/gorm"
+
+	"github.com/go-chocolate/chocolate/pkg/chocolate/logs"
 )
 
 type Dependency struct {
@@ -20,8 +22,9 @@ func (dep *Dependency) Setup(c Config) error {
 	if dep.KVStorage, err = kv.New(c.KV); err != nil {
 		return err
 	}
-	
+
 	telemetry.Setup(c.Telemetry)
+	logs.Setup(c.Logger)
 
 	return nil
 }

@@ -88,6 +88,9 @@ func (s *Server) middlewares() []middleware.Middleware {
 		middleware.TraceId(),
 		middleware.Trace(s.config.Name),
 	}
+	if s.config.Options.Logger.Enable {
+		middlewares = append(middlewares, middleware.Logger())
+	}
 	if s.config.Options.CORS.Enable {
 		middlewares = append(middlewares, middleware.CORS(s.config.Options.CORS.build()))
 	}

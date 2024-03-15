@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/go-chocolate/chocolate/pkg v0.0.0-20240313064553-4c30a6619550
+	github.com/go-chocolate/chocolate/pkg/toolkit v0.0.0-20240315024032-2a13921cd834
 	github.com/go-chocolate/chocolate/pkg/database v0.0.0-20240314094947-29ed89ec7b64
 	github.com/go-chocolate/chocolate/pkg/kv v0.0.0-20240315023427-ffde8327928e
 	github.com/go-chocolate/chocolate/pkg/telemetry v0.0.0-20240315023427-ffde8327928e
