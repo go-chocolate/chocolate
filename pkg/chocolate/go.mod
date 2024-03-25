@@ -3,6 +3,7 @@ module github.com/go-chocolate/chocolate/pkg/chocolate
 go 1.20
 
 require (
+	github.com/buger/jsonparser v1.1.1
 	github.com/go-chocolate/chocolate/pkg/database v0.0.0-20240315024032-2a13921cd834
 	github.com/go-chocolate/chocolate/pkg/kv v0.0.0-20240315062336-a74dac18b344
 	github.com/go-chocolate/chocolate/pkg/telemetry v0.0.0-20240315062336-a74dac18b344
