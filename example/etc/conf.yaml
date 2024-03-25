@@ -1,0 +1,18 @@
+Logger:
+  Level: info
+
+HTTP:
+  Name: example
+  Addr: :8080
+  Options:
+    #CORS:
+    #Logger:
+    #RateLimit:
+
+Database:
+  Driver: sqlite
+  Option:
+    Database: ':memory:'
+
+KV:
+  Driver: memory

@@ -4,11 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/creasty/defaults"
+
+	"github.com/go-chocolate/chocolate/pkg/chocolate/errorx"
 )
 
 type Context interface {
 	Writer() http.ResponseWriter
 	Request() *http.Request
+	Bind(data any) error
+	Error(err error)
+	Ok(body []byte)
+	JSON(status int, body any)
+	OkJSON(body any)
 	context.Context
 }
 
@@ -26,6 +35,9 @@ func WithStd(w http.ResponseWriter, r *http.Request) Context {
 }
 
 func (c *httpContext) Bind(data any) error {
+	if err := defaults.Set(data); err != nil {
+		return err
+	}
 	request := c.Request()
 	contentType := request.Header.Get("Content-Type")
 	var err error
@@ -54,4 +66,27 @@ func (c *httpContext) Bind(data any) error {
 		return v.Validate(c.Context)
 	}
 	return nil
+}
+
+func (c *httpContext) Error(err error) {
+	if e, ok := err.(*errorx.Error); ok {
+		c.JSON(http.StatusInternalServerError, e)
+	} else {
+		c.w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (c *httpContext) Ok(body []byte) {
+	c.w.WriteHeader(http.StatusOK)
+	_, _ = c.Writer().Write(body)
+}
+
+func (c *httpContext) JSON(status int, body any) {
+	c.w.WriteHeader(status)
+	c.w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(c.w).Encode(body)
+}
+
+func (c *httpContext) OkJSON(body any) {
+	c.JSON(http.StatusOK, body)
 }
