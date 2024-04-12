@@ -20,6 +20,10 @@ const (
 	Array
 )
 
+var (
+	null = []byte("null")
+)
+
 func (t Type) String() string {
 	switch t {
 	case Unknown:
@@ -43,8 +47,8 @@ func (t Type) String() string {
 var ErrUnknownType = errors.New("unknown field type")
 
 type Any struct {
-	value string
-	Type  Type
+	value     string
+	valueType Type
 }
 
 type AnyArray []*Any
@@ -57,47 +61,47 @@ func (a *Any) UnmarshalJSON(b []byte) error {
 	}
 	if len(val) == 1 {
 		if b[0] >= '0' && b[0] <= '9' {
-			a.Type = Number
+			a.valueType = Number
 			a.value = string(b)
 			return nil
 		} else {
 			return fmt.Errorf("unexpected json input")
 		}
 	}
-	if bytes.Equal(b, []byte("null")) {
-		a.Type = Null
+	if bytes.Equal(b, null) {
+		a.valueType = Null
 		a.value = string(b)
 		return nil
 	}
 
 	if b[0] == '[' && b[len(b)-1] == ']' {
-		a.Type = Array
+		a.valueType = Array
 		a.value = string(b)
 		return nil
 	}
 
 	if b[0] == '{' && b[len(b)-1] == '}' {
-		a.Type = Object
+		a.valueType = Object
 		a.value = string(b)
 		return nil
 	}
 
 	if b[0] == '"' && b[len(b)-1] == '"' {
-		a.Type = Text
+		a.valueType = Text
 		a.value = string(b[1 : len(b)-1])
 		return nil
 	}
 	if isBoolean(b) {
-		a.Type = Boolean
+		a.valueType = Boolean
 		a.value = string(b)
 		return nil
 	}
 	if isNumber(b) {
-		a.Type = Number
+		a.valueType = Number
 		a.value = string(b)
 		return nil
 	}
-	a.Type = Unknown
+	a.valueType = Unknown
 	return fmt.Errorf("unexpected json input")
 }
 
@@ -125,7 +129,7 @@ func isBoolean(b []byte) bool {
 
 func (a Any) MarshalJSON() ([]byte, error) {
 	data := []byte(a.value)
-	if a.Type == Text {
+	if a.valueType == Text {
 		buf := make([]byte, len(a.value)+2)
 		buf = append(buf, '"')
 		buf = append(buf, data...)
@@ -135,8 +139,12 @@ func (a Any) MarshalJSON() ([]byte, error) {
 	return data, nil
 }
 
+func (a *Any) Type() Type {
+	return a.valueType
+}
+
 func (a *Any) Value() (any, error) {
-	switch a.Type {
+	switch a.valueType {
 	case Null:
 		return nil, nil
 	case Text:
@@ -170,8 +178,8 @@ func (a *Any) Value() (any, error) {
 }
 
 func (a *Any) Object() (map[string]*Any, error) {
-	if a.Type != Object {
-		return nil, fmt.Errorf("content type is not object, but %v", a.Type)
+	if a.valueType != Object {
+		return nil, fmt.Errorf("content type is not object, but %v", a.valueType)
 	}
 	var dst = make(map[string]*Any)
 	if err := Unmarshal([]byte(a.value), &dst); err != nil {
@@ -182,8 +190,8 @@ func (a *Any) Object() (map[string]*Any, error) {
 }
 
 func (a *Any) Array() ([]*Any, error) {
-	if a.Type != Array {
-		return nil, fmt.Errorf("content type is not array, but %v", a.Type)
+	if a.valueType != Array {
+		return nil, fmt.Errorf("content type is not array, but %v", a.valueType)
 	}
 	var dst []*Any
 	if err := Unmarshal([]byte(a.value), &dst); err != nil {
@@ -194,8 +202,8 @@ func (a *Any) Array() ([]*Any, error) {
 }
 
 func (a *Any) Int64() (int64, error) {
-	if a.Type != Number {
-		return 0, fmt.Errorf("content type is not number, but %v", a.Type)
+	if a.valueType != Number {
+		return 0, fmt.Errorf("content type is not number, but %v", a.valueType)
 	}
 	if strings.Contains(a.value, ".") {
 		val, err := a.Float64()
@@ -205,25 +213,28 @@ func (a *Any) Int64() (int64, error) {
 }
 
 func (a *Any) Float64() (float64, error) {
-	if a.Type != Number {
-		return 0, fmt.Errorf("content type is not number, but %v", a.Type)
+	if a.valueType != Number {
+		return 0, fmt.Errorf("content type is not number, but %v", a.valueType)
 	}
 	return strconv.ParseFloat(a.value, 64)
 }
 
 func (a *Any) Boolean() (bool, error) {
-	if a.Type != Number {
-		return false, fmt.Errorf("content type is not boolean, but %v", a.Type)
+	if a.valueType != Number {
+		return false, fmt.Errorf("content type is not boolean, but %v", a.valueType)
 	}
 	return a.value == "true", nil
 }
 
 func (a *Any) String() string {
+	if a.valueType == Null {
+		return ""
+	}
 	return a.value
 }
 
 func (a *Any) IsNull() bool {
-	return a.Type == Null
+	return a.valueType == Null
 }
 
 func (a *Any) MustValue() any {
@@ -270,6 +281,54 @@ func (a *Any) MustBoolean() bool {
 	val, err := a.Boolean()
 	if err != nil {
 		panic(err)
+	}
+	return val
+}
+
+func (a *Any) MaybeValue() any {
+	val, err := a.Value()
+	if err != nil {
+		return nil
+	}
+	return val
+}
+
+func (a *Any) MaybeObject() map[string]*Any {
+	val, err := a.Object()
+	if err != nil {
+		return nil
+	}
+	return val
+}
+
+func (a *Any) MaybeArray() []*Any {
+	val, err := a.Array()
+	if err != nil {
+		return nil
+	}
+	return val
+}
+
+func (a *Any) MaybeInt64() int64 {
+	val, err := a.Int64()
+	if err != nil {
+		return 0
+	}
+	return val
+}
+
+func (a *Any) MaybeFloat64() float64 {
+	val, err := a.Float64()
+	if err != nil {
+		return 0
+	}
+	return val
+}
+
+func (a *Any) MaybeBoolean() bool {
+	val, err := a.Boolean()
+	if err != nil {
+		return false
 	}
 	return val
 }
