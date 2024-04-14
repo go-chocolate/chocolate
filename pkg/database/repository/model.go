@@ -37,7 +37,7 @@ func (m *ModelOperator[T]) Load(ctx context.Context) error {
 	if data, err := m.Rep.FindOne(ctx, m.Value); err != nil {
 		return err
 	} else {
-		m.Value = data
+		*m.Value = *data
 	}
 	m.Model().Rebase()
 	return nil
