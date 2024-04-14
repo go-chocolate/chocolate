@@ -77,6 +77,7 @@ func (e *logEntry) text() ([]byte, error) {
 	for k, v := range e.build() {
 		fmt.Fprintf(b, "%s=%v ", k, v)
 	}
+	b.Write([]byte{'\n'})
 	return b.Bytes(), nil
 }
 
@@ -87,9 +88,10 @@ func (e *logEntry) json() ([]byte, error) {
 
 func build(e *logrus.Entry) *logEntry {
 	entry := &logEntry{
-		fields: e.Data,
-		time:   e.Time,
-		level:  e.Level,
+		fields:  e.Data,
+		time:    e.Time,
+		level:   e.Level,
+		message: e.Message,
 	}
 	if e.Context != nil {
 		entry.traceId = telemetry.TraceIDFromContext(e.Context)
