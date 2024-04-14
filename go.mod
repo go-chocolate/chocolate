@@ -1,3 +1,3 @@
 module github.com/go-chocolate/chocolate
 
-go 1.20
+go 1.22

@@ -1,6 +1,6 @@
 module github.com/go-chocolate/chocolate/pkg/chocolate
 
-go 1.20
+go 1.22
 
 require (
 	github.com/creasty/defaults v1.7.0
