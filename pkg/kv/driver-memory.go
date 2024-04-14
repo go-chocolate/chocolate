@@ -50,4 +50,6 @@ func (s *memoryStorage) Del(ctx context.Context, keys ...string) error {
 	return nil
 }
 
-func memoryDriver(c Option) (Storage, error) { return &memoryStorage{}, nil }
+func memoryDriver(c Option) (Storage, error) {
+	return &memoryStorage{storage: map[string]*memoryItem{}}, nil
+}

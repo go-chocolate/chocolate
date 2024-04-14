@@ -13,6 +13,7 @@ func Recovery() Middleware {
 			defer func() {
 				if recoveredError := recover(); recoveredError != nil {
 					logger := logrus.WithContext(request.Context())
+					logger.Error(recoveredError)
 					stack := debug.Stack()
 					traceId := writer.Header().Get(headerTraceId)
 					logger.WithField("panic_trace_id", traceId).Errorf(string(stack))
