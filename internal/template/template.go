@@ -2,16 +2,20 @@ package template
 
 import (
 	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"embed"
 	"fmt"
 	"io"
+	"os"
+	"path"
 )
 
 const (
-	Replacement = "github.com/go-chocolate/example"
+	replacement = "github.com/go-chocolate/example"
 )
 
-//go:embed assets/template.tar
+//go:embed assets/template.tar.gz
 var fs embed.FS
 
 type File struct {
@@ -21,13 +25,19 @@ type File struct {
 }
 
 func Read() ([]*File, error) {
-	temp, err := fs.Open("assets/template.tar")
+	temp, err := fs.Open("assets/template.tar.gz")
 	if err != nil {
 		return nil, err
 	}
 	defer temp.Close()
 
-	re := tar.NewReader(temp)
+	gz, err := gzip.NewReader(temp)
+	if err != nil {
+		return nil, err
+	}
+	defer gz.Close()
+
+	re := tar.NewReader(gz)
 
 	var files []*File
 
@@ -54,4 +64,21 @@ func Read() ([]*File, error) {
 		files = append(files, file)
 	}
 	return files, nil
+}
+
+type Option struct {
+	Output string
+	Module string
+}
+
+func Write(file *File, opt Option) error {
+	filename := path.Clean(fmt.Sprintf("%s/%s", opt.Output, file.Filename))
+	if file.IsDir {
+		return os.Mkdir(filename, 0777)
+	}
+	var content = file.Content
+	if opt.Module != "" {
+		content = bytes.ReplaceAll(content, []byte(replacement), []byte(opt.Module))
+	}
+	return os.WriteFile(filename, content, 0644)
 }
