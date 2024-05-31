@@ -71,19 +71,31 @@ func IsPrivate(ip string) (bool, error) {
 
 func FigureOutListenOn(listenOn string) string {
 	addr, err := net.ResolveTCPAddr("", listenOn)
-	if err != nil {
+	var ip net.IP
+	if err == nil {
+		ip = addr.IP
+	}
+	iptext := figureOutIP(ip)
+	if iptext == "" {
 		return listenOn
 	}
-	if ip := addr.IP; len(ip) > 0 && !ip.IsUnspecified() && !ip.IsLoopback() {
-		return listenOn
-	}
+	return net.JoinHostPort(iptext, strconv.Itoa(addr.Port))
+}
 
-	ip := os.Getenv(envPodIp)
-	if len(ip) == 0 {
-		ip = InternalIp()
+func FigureOutIP(iptext string) string {
+	if ip := figureOutIP(net.ParseIP(iptext)); ip != "" {
+		return ip
 	}
-	if len(ip) == 0 {
-		return listenOn
+	return iptext
+}
+
+func figureOutIP(ip net.IP) string {
+	if len(ip) > 0 && !ip.IsUnspecified() && !ip.IsLoopback() {
+		return ""
 	}
-	return net.JoinHostPort(ip, strconv.Itoa(addr.Port))
+	podIP := os.Getenv(envPodIp)
+	if podIP == "" {
+		podIP = InternalIp()
+	}
+	return podIP
 }
