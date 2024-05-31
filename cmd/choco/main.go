@@ -38,14 +38,14 @@ func parse() *option {
 
 func usage() string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(fmt.Sprintf("Usage for gokit %s:\n", version.Version))
-	buf.WriteString(fmt.Sprintf("  gokit [command] [options]\n"))
+	buf.WriteString(fmt.Sprintf("Usage for choco %s:\n", version.Version))
+	buf.WriteString(fmt.Sprintf("  choco [command] [options]\n"))
 	buf.WriteString(fmt.Sprintf("Commands:\n"))
 	buf.WriteString(fmt.Sprintf("  create    Create a new project\n"))
 	buf.WriteString(fmt.Sprintf("Options:\n"))
 	buf.WriteString(fmt.Sprintf("  --module, -m    Module name, default is 'example'.\n"))
 	buf.WriteString(fmt.Sprintf("  --output, -o    Output path, default is current path.\n"))
-	buf.WriteString("Example:\n  gokit create --module github.com/example/example --output . ")
+	buf.WriteString("Example:\n  choco create --module github.com/example/example --output . ")
 	return buf.String()
 }
 
