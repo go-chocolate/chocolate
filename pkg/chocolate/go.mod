@@ -7,7 +7,7 @@ require (
 	github.com/go-chocolate/chocolate/pkg/database v0.0.0-20240315024032-2a13921cd834
 	github.com/go-chocolate/chocolate/pkg/kv v0.0.0-20240315062336-a74dac18b344
 	github.com/go-chocolate/chocolate/pkg/telemetry v0.0.0-20240315062336-a74dac18b344
-	github.com/go-chocolate/chocolate/pkg/toolkit v0.0.0-20240315062336-a74dac18b344
+	github.com/go-chocolate/chocolate/pkg/toolkit v0.0.0-20240531092156-4333daa0a207
 	github.com/juju/ratelimit v1.0.2
 	github.com/sirupsen/logrus v1.9.3
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0

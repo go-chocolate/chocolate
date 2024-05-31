@@ -2,7 +2,10 @@ package chocorpc
 
 import (
 	"context"
+	"github.com/go-chocolate/chocolate/pkg/chocolate/cluster"
+	"github.com/go-chocolate/chocolate/pkg/chocolate/cluster/endpoint"
 	"net"
+	"strconv"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -20,6 +23,7 @@ type Server struct {
 	options            []grpc.ServerOption
 	unaryInterceptors  []grpc.UnaryServerInterceptor
 	streamInterceptors []grpc.StreamServerInterceptor
+	cluster.Cluster
 }
 
 func NewServer(config Config) *Server {
@@ -67,9 +71,33 @@ func (s *Server) Run(ctx context.Context) error {
 		return err
 	}
 
+	if err := s.ClusterRegister(ctx, s.config.Name, s.endpoint()); err != nil {
+		return err
+	}
+
 	return server.Serve(s.listener)
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	return s.listener.Close()
+}
+
+func (s *Server) endpoint() *endpoint.Endpoint {
+	host, p, err := net.SplitHostPort(s.config.Addr)
+	if err != nil {
+		host = "0.0.0.0"
+		p = "80"
+	}
+	port, _ := strconv.Atoi(p)
+
+	return &endpoint.Endpoint{
+		Protocol: endpoint.GRPC,
+		Host:     host,
+		Port:     uint16(port),
+		Healthy: endpoint.HealthyOption{
+			Enable:   true,
+			Protocol: endpoint.GRPC,
+			TLS:      false,
+		},
+	}
 }
